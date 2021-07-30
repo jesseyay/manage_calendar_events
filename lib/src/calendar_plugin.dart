@@ -32,6 +32,12 @@ class CalendarPlugin {
     return;
   }
 
+  Future<String> createCalendar(String name) async {
+    String res = await _channel
+        .invokeMethod('createCalendar', <String, Object?>{'name': name});
+    return res;
+  }
+
   /// Returns the available calendars from the device
   Future<List<Calendar>?> getCalendars() async {
     List<Calendar>? calendars = [];

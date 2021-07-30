@@ -144,6 +144,11 @@ public class SwiftManageCalendarEventsPlugin: NSObject, FlutterPlugin {
             let eventId = arguments["eventId"] as! String
 
             self.deleteAttendees(eventId: eventId, arguments: arguments)
+        } else if(call.method == "createCalendar") {
+            let arguments = call.arguments as! Dictionary<String, AnyObject>
+            let name = arguments["name"] as! String
+            let res = self.createCalendar(name)
+            result(res)
         }
 //        else {
 //            result.notImplemented()
@@ -368,6 +373,23 @@ public class SwiftManageCalendarEventsPlugin: NSObject, FlutterPlugin {
             attendees.insert(organiser!, at: 0)
         }
         return attendees
+    }
+
+    private func createCalendar(name: String) -> String {
+        let newCalendar = EKCalendar(forEntityType: .Event, eventStore: self.eventStore)
+        newCalendar.title = name
+        self.eventStore.saveCalendar()
+        let sourcesInEventStore = eventStore.sources 
+        newCalendar.source = sourcesInEventStore.filter{
+            (source: EKSource) -> Bool in
+            source.sourceType.rawValue == EKSourceType.Local.rawValue
+        }.first!
+        do {
+            try eventStore.saveCalendar(newCalendar, commit: true)
+        } catch {
+            return ""
+        }
+        return newCalendar.calendarIdentifier
     }
 
     private func addAttendees(eventId: String, arguments: Dictionary<String, AnyObject>) {
